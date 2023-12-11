@@ -67,15 +67,17 @@ class RAMDriver : public sc_core::sc_module {
       }
     } else if (state == STATE_READ_ADDRESS_ONLY) {
       write_enable.write(false);
-      read_enable.write(true);
-      read_address.write(addr_start + pos);
+//      read_enable.write(true);
+//      read_address.write(addr_start + pos);
       state = STATE_READ_DATA_UPDATE_ADDRESS;
     } else if (state == STATE_READ_DATA_UPDATE_ADDRESS) {
+      read_enable.write(true);
+      read_address.write(addr_start + pos);
       if (read_available->read()) {
         rdata.push_back(data_in->read());
-        pos++;
-        read_address.write(addr_start + pos);
+        //read_address.write(addr_start + pos);
       }
+      pos++;
       //      std::cout << "rdata len " << rdata.length() << " read_bytes "
       //                << read_bytes << "\n";
       if (rdata.length() >= read_bytes) {
@@ -172,13 +174,16 @@ class TestBench {
     while (write_enable.read() == false) {
       sc_core::sc_start(1, sc_core::SC_NS);
     }
+    sc_core::sc_start(0, sc_core::SC_NS);
     std::cout << sc_core::sc_time_stamp() << " writes started\n";
     while (write_enable.read() == true) {
       sc_core::sc_start(1, sc_core::SC_NS);
     }
+    sc_core::sc_start(0, sc_core::SC_NS);
     std::cout << sc_core::sc_time_stamp() << " writes done\n";
     ram.backdoor_write(100, "Prasad");
 
+    sc_core::sc_start(0, sc_core::SC_NS);
     sc_core::sc_start(30, sc_core::SC_NS);
     sc_core::sc_close_vcd_trace_file(tf);
     return 0;
